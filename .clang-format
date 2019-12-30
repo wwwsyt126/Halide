@@ -3,7 +3,7 @@ AccessModifierOffset: -4
 AlignEscapedNewlinesLeft: true
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true
-# Requires Clang 10+
+# Requires Clang-Format 10+
 # AllowShortBlocksOnASingleLine: 'Empty'
 AllowShortFunctionsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: true
