@@ -50,10 +50,13 @@ protected:
     using IRGraphVisitor::visit;
 
     // Need to also extract the let bindings of a Store index.
-    void visit(const Let *op) override {
+    void visit(const Let *op) override
+    {
         IRGraphVisitor::visit(op); // Make sure we visit the Store first.
-        if (index.defined()) {
-            if (expr_uses_var(index, op->name)) {
+        if (index.defined())
+        {
+            if (expr_uses_var(index, op->name))
+            {
                 index = Let::make(op->name, op->value, index);
             }
         }
@@ -69,7 +72,12 @@ protected:
 
     void visit(const Store *op) override {
         IRGraphVisitor::visit(op);
-        if (op->name == producer_name || starts_with(op->name, producer_name + ".")) {
+        if (op->name == producer_name || starts_with(op->name, producer_name + "."))
+
+
+
+
+{
             // This is a Store for the designated producer.
 
             // Ideally we want to insert equal() checks here for different stores,
