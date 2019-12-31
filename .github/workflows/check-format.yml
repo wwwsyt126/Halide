@@ -35,7 +35,7 @@ jobs:
             build_type: "Release",
             cc: "gcc",
             cxx: "g++",
-            llvm_version: "8.0.0",
+            llvm_url: "https://releases.llvm.org/8.0.0/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz"
           }
         - {
             name: "Ubuntu GCC LLVM9",
@@ -43,16 +43,15 @@ jobs:
             build_type: "Release",
             cc: "gcc",
             cxx: "g++",
-            llvm_version: "9.0.0",
+            llvm_url: "https://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz"
           }
         - {
             name: "Ubuntu Clang LLVM9",
-            os: ubuntu-latest,
             os: ubuntu-18.04,
             build_type: "Release",
             cc: "clang",
             cxx: "clang++",
-            llvm_version: "9.0.0",
+            llvm_url: "https://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz"
           }
         - {
             name: "OSX LLVM9",
@@ -60,7 +59,7 @@ jobs:
             build_type: "Release",
             cc: "clang",
             cxx: "clang++",
-            llvm_version: "9.0.0",
+            llvm_url: "https://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-darwin-apple.tar.xz"
           }
         # - {
         #     name: "Windows Latest MSVC", artifact: "Windows-MSVC.tar.xz",
@@ -80,22 +79,24 @@ jobs:
     - name: Download LLVM
       run: |
         # Download the right llvm release.
-        wget https://releases.llvm.org/${{matrix.config.llvm_version}}/clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-        tar xvf clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-        sudo mv clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-18.04 /usr/local/llvm
+        wget ${{matrix.config.llvm_url}}
+        export NAME="$(echo `basename ${{matrix.config.llvm_url}}` | sed s/\.tar\.xz//)""
+        tar xvf ${NAME}.tar.xz
+        sudo mv ${NAME} /usr/local/llvm
         # Get libpng for the tutorials and apps
-        sudo apt-get -y --force-yes install libpng-dev
+        # sudo apt-get -y --force-yes install libpng-dev
         # For generating docs
-        sudo apt-get -y --force-yes --no-install-recommends install doxygen
+        # sudo apt-get -y --force-yes --no-install-recommends install doxygen
 
     - name: Configure CMake
       run: |
-        export LLVM_VERSION_NO_DOT="$( echo ${{matrix.config.llvm_version}} | sed 's/\([0-9][0-9]*\)\.\([0-9]\).*/\1\2/' )"
+        export LLVM_VERSION_NO_DOT="$( echo ${{matrix.config.llvm_url}} | sed sed 's|http[s]*://releases.llvm.org/\([0-9][0-9]*\)\.\([0-9]\).*|\1\2|' )"
         export CC="${{ matrix.config.cc }})"
         export CXX="${{ matrix.config.cxx }})"
         mkdir build
         cd build
-        cmake -DHALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}" \
+        cmake \
+            -DHALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}" \
             -DLLVM_DIR="/usr/local/llvm/lib/cmake/llvm/" \
             -DHALIDE_SHARED_LIBRARY=ON \
             -DCMAKE_BUILD_TYPE=Release \
