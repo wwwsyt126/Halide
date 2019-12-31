@@ -76,13 +76,13 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Download LLVM
+    - name: Download LLVM & Other
+      shell: cmake -P {0}
       run: |
-        # Download the right llvm release.
-        wget ${{matrix.config.llvm_url}}
-        export NAME="$(echo `basename ${{matrix.config.llvm_url}}` | sed s/\.tar\.xz//)""
-        tar xvf ${NAME}.tar.xz
-        sudo mv ${NAME} /usr/local/llvm
+        # Download the right llvm release. Use CMake (rather than wget) because
+        # we know it's available and will get the job done.
+        file(DOWNLOAD "${{matrix.config.llvm_url}}" ./llvm-project.tar.xz SHOW_PROGRESS)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./llvm-project.tar.xz)
         # Get libpng for the tutorials and apps
         # sudo apt-get -y --force-yes install libpng-dev
         # For generating docs
@@ -97,7 +97,7 @@ jobs:
         cd build
         cmake \
             -DHALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}" \
-            -DLLVM_DIR="/usr/local/llvm/lib/cmake/llvm/" \
+            -DLLVM_DIR="../llvm-project/lib/cmake/llvm/" \
             -DHALIDE_SHARED_LIBRARY=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -G "Unix Makefiles" \
