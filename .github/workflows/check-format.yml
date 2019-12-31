@@ -30,20 +30,37 @@ jobs:
       matrix:
         config:
         - {
-          name: "Ubuntu Latest GCC LLVM8",
-          os: ubuntu-18.04,
-          build_type: "Release",
-          cc: "gcc",
-          cxx: "g++",
-          llvm_version: "8.0.0",
+            name: "Ubuntu GCC LLVM8",
+            os: ubuntu-18.04,
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            llvm_version: "8.0.0",
           }
         - {
-          name: "Ubuntu Latest GCC LLVM9",
-          os: ubuntu-18.04,
-          build_type: "Release",
-          cc: "gcc",
-          cxx: "g++",
-          llvm_version: "9.0.0",
+            name: "Ubuntu GCC LLVM9",
+            os: ubuntu-18.04,
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            llvm_version: "9.0.0",
+          }
+        - {
+            name: "Ubuntu Clang LLVM9",
+            os: ubuntu-latest,
+            os: ubuntu-18.04,
+            build_type: "Release",
+            cc: "clang",
+            cxx: "clang++",
+            llvm_version: "9.0.0",
+          }
+        - {
+            name: "OSX LLVM9",
+            os: macos-latest,
+            build_type: "Release",
+            cc: "clang",
+            cxx: "clang++",
+            llvm_version: "9.0.0",
           }
         # - {
         #     name: "Windows Latest MSVC", artifact: "Windows-MSVC.tar.xz",
@@ -55,16 +72,6 @@ jobs:
         #     name: "Windows Latest MinGW", artifact: "Windows-MinGW.tar.xz",
         #     os: windows-latest,
         #     build_type: "Release", cc: "gcc", cxx: "g++"
-        #   }
-        # - {
-        #     name: "Ubuntu Latest Clang", artifact: "Linux.tar.xz",
-        #     os: ubuntu-latest,
-        #     build_type: "Release", cc: "clang", cxx: "clang++"
-        #   }
-        # - {
-        #     name: "macOS Latest Clang", artifact: "macOS.tar.xz",
-        #     os: macos-latest,
-        #     build_type: "Release", cc: "clang", cxx: "clang++"
         #   }
 
     steps:
@@ -88,11 +95,11 @@ jobs:
         export CXX="${{ matrix.config.cxx }})"
         mkdir build
         cd build
-        cmake -DHALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}"
-            -DLLVM_DIR="/usr/local/llvm/lib/cmake/llvm/"
-            -DHALIDE_SHARED_LIBRARY=ON
-            -DCMAKE_BUILD_TYPE=Release
-            -G "Unix Makefiles"
+        cmake -DHALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}" \
+            -DLLVM_DIR="/usr/local/llvm/lib/cmake/llvm/" \
+            -DHALIDE_SHARED_LIBRARY=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -G "Unix Makefiles" \
             ..
 
     - name: build
