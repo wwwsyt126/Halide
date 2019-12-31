@@ -68,48 +68,48 @@ jobs:
                 #   }
 
             steps:
-            - name: Check out source
-                uses: actions/checkout@v1
+                - name: Check out source
+                    uses: actions/checkout@v1
 
-            - name: Download LLVM
-                id: download_llvm
-                run: |
-                    # Download the right llvm release.
-                    wget https://releases.llvm.org/${{matrix.config.llvm_version}}/clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-                    tar xvf clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-                    sudo mv clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-16.04 /usr/local/llvm
-                    # Get libpng for the tutorials and apps
-                    sudo apt-get -y --force-yes install libpng-dev
-                    # For generating docs
-                    sudo apt-get -y --force-yes --no-install-recommends install doxygen
+                - name: Download LLVM
+                    id: download_llvm
+                    run: |
+                        # Download the right llvm release.
+                        wget https://releases.llvm.org/${{matrix.config.llvm_version}}/clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+                        tar xvf clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+                        sudo mv clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-16.04 /usr/local/llvm
+                        # Get libpng for the tutorials and apps
+                        sudo apt-get -y --force-yes install libpng-dev
+                        # For generating docs
+                        sudo apt-get -y --force-yes --no-install-recommends install doxygen
 
-            - name: Configure CMake
-                run: |
-                    export LLVM_VERSION_NO_DOT="$( echo ${{matrix.config.llvm_version}} | sed 's/\([0-9][0-9]*\)\.\([0-9]\).*/\1\2/' )"
-                    export CC="${{ matrix.config.cc }})"
-                    export CXX="${{ matrix.config.cxx }})"
-                    mkdir build
-                    cd build
-                    cmake -DHALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}"
-                          -DLLVM_DIR="/usr/local/llvm/lib/cmake/llvm/"
-                          -DHALIDE_SHARED_LIBRARY=ON
-                          -DCMAKE_BUILD_TYPE=Release
-                          -G "Unix Makefiles"
-                          ..
+                - name: Configure CMake
+                    run: |
+                        export LLVM_VERSION_NO_DOT="$( echo ${{matrix.config.llvm_version}} | sed 's/\([0-9][0-9]*\)\.\([0-9]\).*/\1\2/' )"
+                        export CC="${{ matrix.config.cc }})"
+                        export CXX="${{ matrix.config.cxx }})"
+                        mkdir build
+                        cd build
+                        cmake -DHALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}"
+                              -DLLVM_DIR="/usr/local/llvm/lib/cmake/llvm/"
+                              -DHALIDE_SHARED_LIBRARY=ON
+                              -DCMAKE_BUILD_TYPE=Release
+                              -G "Unix Makefiles"
+                              ..
 
-            - name: build
-                run: |
-                    cd build
-                    make -j4 package
-                    make -j4 test_internal
-                    make -j4 build_tests
-                    make -j4 run_tests
-                    make doc
+                - name: build
+                    run: |
+                        cd build
+                        make -j4 package
+                        make -j4 test_internal
+                        make -j4 build_tests
+                        make -j4 run_tests
+                        make doc
 
-            - name: test
-                run: |
-                    cd build
-                    make -j4 run_tests
+                - name: test
+                    run: |
+                        cd build
+                        make -j4 run_tests
 
       # build-windows:
       #   runs-on: ${{ matrix.os }}
