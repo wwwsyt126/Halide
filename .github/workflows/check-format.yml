@@ -105,9 +105,9 @@ jobs:
           COMMAND ${CMAKE_COMMAND}
             -S .
             -B build
-            -D CMAKE_BUILD_TYPE=Release
-            -D HALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}"
-            -D LLVM_DIR="./llvm-project/lib/cmake/llvm/"
+            -DCMAKE_BUILD_TYPE=Release
+            -DHALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}"
+            -DLLVM_DIR="./llvm-project/lib/cmake/llvm/"
             -G "Unix Makefiles"
           RESULT_VARIABLE result
         )
