@@ -89,28 +89,38 @@ jobs:
         # sudo apt-get -y --force-yes --no-install-recommends install doxygen
 
     - name: Configure CMake
+      shell:  cmake -P {0}
       run: |
-        export LLVM_VERSION_NO_DOT="$( echo ${{matrix.config.llvm_url}} | sed 's|http[s]*://releases.llvm.org/\([0-9][0-9]*\)\.\([0-9]\).*|\1\2|' )"
-        export CC="${{ matrix.config.cc }})"
-        export CXX="${{ matrix.config.cxx }})"
-        mkdir build
-        cd build
-        cmake \
-            -DHALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}" \
-            -DLLVM_DIR="../llvm-project/lib/cmake/llvm/" \
-            -DHALIDE_SHARED_LIBRARY=ON \
-            -DCMAKE_BUILD_TYPE=Release \
-            -G "Unix Makefiles" \
-            ..
+        set(ENV{CC} ${{ matrix.config.cc }})
+        set(ENV{CXX} ${{ matrix.config.cxx }})
+        string(REGEX REPLACE
+          "http[s]*://releases.llvm.org/\([0-9][0-9]*\)\.\([0-9]\).*"
+          "\\1\\2"
+          LLVM_VERSION_NO_DOT)
 
-    - name: build
+        execute_process(
+          COMMAND ${CMAKE_COMMAND}
+            -S .
+            -B build
+            -D CMAKE_BUILD_TYPE=Release
+            -D HALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}"
+            -D LLVM_DIR="./llvm-project/lib/cmake/llvm/"
+            -G "Unix Makefiles"
+          RESULT_VARIABLE result)
+        )
+        if (NOT result EQUAL 0)
+          message(FATAL_ERROR "Bad exit status")
+        endif()
+
+    - name: cmake -P {0}
       run: |
-        cd build
-        make -j4 package
-        make -j4 test_internal
-        make -j4 build_tests
-        make -j4 run_tests
-        make doc
+        execute_process(
+          COMMAND ${CMAKE_COMMAND} --build build
+          RESULT_VARIABLE result
+        )
+        if (NOT result EQUAL 0)
+          message(FATAL_ERROR "Bad exit status")
+        endif()
 
     - name: test
       run: |
