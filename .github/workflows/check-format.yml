@@ -1,21 +1,120 @@
 name: Check Code Formatting
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, edited, review_requested]
-    paths:
-    - '**.h'
-    - '**.cpp'
+    pull_request:
+        types: [opened, synchronize, reopened, edited, review_requested]
+        paths:
+        - '**.h'
+        - '**.cpp'
 
 jobs:
-  build:
-    name: Check clang-format
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - uses: DoozyX/clang-format-lint-action@v0.5
-      with:
-        source: '.'
-        # Our tutorials have special formatting, skip them
-        exclude: './tutorial'
-        extensions: 'h,cpp'
-        clangFormatVersion: 9
+    # check_clang_format:
+    #     name: Check clang-format
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #         - uses: actions/checkout@v1
+    #         - uses: DoozyX/clang-format-lint-action@v0.5
+    #         with:
+    #             source: '.'
+    #             # Our tutorials have special formatting, skip them
+    #             exclude: './tutorial'
+    #             extensions: 'h,cpp'
+    #             clangFormatVersion: 9
+
+    test:
+        build:
+            name: ${{ matrix.config.name }}
+            runs-on: ${{ matrix.config.os }}
+
+            strategy:
+              fail-fast: false
+              matrix:
+                config:
+                # - {
+                #     name: "Windows Latest MSVC", artifact: "Windows-MSVC.tar.xz",
+                #     os: windows-latest,
+                #     build_type: "Release", cc: "cl", cxx: "cl",
+                #     environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+                #   }
+                # - {
+                #     name: "Windows Latest MinGW", artifact: "Windows-MinGW.tar.xz",
+                #     os: windows-latest,
+                #     build_type: "Release", cc: "gcc", cxx: "g++"
+                #   }
+                - {
+                    name: "Ubuntu Latest GCC", artifact: "Linux.tar.xz",
+                    os: ubuntu-18.04,
+                    build_type: "Release", cc: "gcc", cxx: "g++",
+                    llvm_version=8.0.0
+                  }
+                - {
+                    name: "Ubuntu Latest GCC", artifact: "Linux.tar.xz",
+                    os: ubuntu-18.04,
+                    build_type: "Release", cc: "gcc", cxx: "g++",
+                    llvm_version=9.0.0
+                  }
+                # - {
+                #     name: "Ubuntu Latest Clang", artifact: "Linux.tar.xz",
+                #     os: ubuntu-latest,
+                #     build_type: "Release", cc: "clang", cxx: "clang++"
+                #   }
+                # - {
+                #     name: "macOS Latest Clang", artifact: "macOS.tar.xz",
+                #     os: macos-latest,
+                #     build_type: "Release", cc: "clang", cxx: "clang++"
+                #   }
+
+            steps:
+            - uses: actions/checkout@v1
+            - name: Download LLVM
+                id: download_llvm
+                run: |
+                    # Download the right llvm release.
+                    wget https://releases.llvm.org/${{matrix.config.llvm_version}}/clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+                    tar xvf clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+                    sudo mv clang+llvm-${{matrix.config.llvm_version}}-x86_64-linux-gnu-ubuntu-16.04 /usr/local/llvm
+                    # Get libpng for the tutorials and apps
+                    sudo apt-get -y --force-yes install libpng-dev
+                    # For generating docs
+                    sudo apt-get -y --force-yes --no-install-recommends install doxygen
+
+            - name: Configure CMake
+                run: |
+                    export LLVM_VERSION_NO_DOT="$( echo ${{matrix.config.llvm_version}} | sed 's/\([0-9][0-9]*\)\.\([0-9]\).*/\1\2/' )"
+                    export CC="${{ matrix.config.cc }})"
+                    export CXX="${{ matrix.config.cxx }})"
+                    mkdir build
+                    cd build
+                    cmake -DHALIDE_REQUIRE_LLVM_VERSION="${LLVM_VERSION_NO_DOT}"
+                          -DLLVM_DIR="/usr/local/llvm/lib/cmake/llvm/"
+                          -DHALIDE_SHARED_LIBRARY=ON
+                          -DCMAKE_BUILD_TYPE=Release
+                          -G "Unix Makefiles"
+                          ..
+            - name: build
+                run: |
+                    cd build
+                    make -j4 package
+                    make -j4 test_internal
+                    make -j4 build_tests
+                    make -j4 run_tests
+                    make doc
+
+            - name: test
+                run: |
+                    cd build
+                    make -j4 run_tests
+
+      # build-windows:
+      #   runs-on: ${{ matrix.os }}
+      #   strategy:
+      #     matrix:
+      #       os: [windows-latest, windows-2016]
+
+      #   steps:
+      #   - uses: actions/checkout@v1
+      #   - name: configure
+      #     run: mkdir build && cd build && cmake ..
+      #   - name: build
+      #     run: cmake --build build --config Debug
+      #   - name: test
+      #     run: cd build && ctest
