@@ -68,8 +68,7 @@ jobs:
                     #   }
 
             steps:
-                - name: Check out source
-                    uses: actions/checkout@v1
+                - uses: actions/checkout@v1
 
                 - name: Download LLVM
                     id: download_llvm
