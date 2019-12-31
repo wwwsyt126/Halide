@@ -90,7 +90,7 @@ jobs:
 
     - name: Configure CMake
       run: |
-        export LLVM_VERSION_NO_DOT="$( echo ${{matrix.config.llvm_url}} | sed sed 's|http[s]*://releases.llvm.org/\([0-9][0-9]*\)\.\([0-9]\).*|\1\2|' )"
+        export LLVM_VERSION_NO_DOT="$( echo ${{matrix.config.llvm_url}} | sed 's|http[s]*://releases.llvm.org/\([0-9][0-9]*\)\.\([0-9]\).*|\1\2|' )"
         export CC="${{ matrix.config.cc }})"
         export CXX="${{ matrix.config.cxx }})"
         mkdir build
