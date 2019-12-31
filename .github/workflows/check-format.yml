@@ -91,8 +91,8 @@ jobs:
     - name: Configure CMake
       shell:  cmake -P {0}
       run: |
-        set(ENV{CC} ${{ matrix.config.cc }})
-        set(ENV{CXX} ${{ matrix.config.cxx }})
+        set(ENV{CC} "${{ matrix.config.cc }}")
+        set(ENV{CXX} "${{ matrix.config.cxx }}")
         string(REGEX REPLACE
           "http[s]*://releases.llvm.org/\([0-9][0-9]*\)\.\([0-9]\).*"
           "\\1\\2"
